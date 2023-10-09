@@ -45,7 +45,7 @@ public class UserController : ControllerBase
         {
             return StatusCode(400, new ResultViewModel<User>("Esse e-mail já está cadastrado"));
         }
-        catch (Exception ex)
+        catch
         {
             return StatusCode(500, new ResultViewModel<User>("Falha interna do ser"));
         }
@@ -86,7 +86,7 @@ public class UserController : ControllerBase
     {
         try
         {
-            var users = await context.Users.ToListAsync();
+            var users = await context.Users.Where(x=>x.IsActive == true).ToListAsync();
             return Ok(new ResultViewModel<List<User>>(users));
         }
         catch
@@ -135,7 +135,7 @@ public class UserController : ControllerBase
         {
              return StatusCode(500, new ResultViewModel<User>("Não foi possível atualizar o usuário"));
         }
-        catch (Exception ex)
+        catch
         {
              return StatusCode(500, new ResultViewModel<User>("Falha interna no servidor"));
         }
@@ -164,7 +164,7 @@ public class UserController : ControllerBase
         {
             return StatusCode(500, new ResultViewModel<User>("Não foi possível excluir o usuário"));
         }
-        catch (Exception ex)
+        catch
         {
             return StatusCode(500, new ResultViewModel<User>("Falha interna no servidor"));
         }
