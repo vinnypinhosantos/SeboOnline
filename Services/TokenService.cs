@@ -13,7 +13,10 @@ public class TokenService
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(Configuration.JwtKey);
-        var claims = user.GetClaims();
+        var claims = user.GetClaims().ToList();
+
+        claims.Add(new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()));
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),

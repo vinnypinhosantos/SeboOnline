@@ -8,6 +8,8 @@ using SeboOnline.Services;
 using SeboOnline.ViewModels;
 using Exception = System.Exception;
 using SecureIdentity.Password;
+using static System.Net.WebRequestMethods;
+using System.Security.Claims;
 
 namespace SeboOnline.Controllers;
 
@@ -38,7 +40,8 @@ public class UserController : ControllerBase
 
             return Ok(new ResultViewModel<dynamic>(new
             {
-                user = user.Email, model.Password
+                user = user.Email,
+                model.Password
             }));
         }
         catch (DbUpdateException ex)
@@ -49,7 +52,7 @@ public class UserController : ControllerBase
         {
             return StatusCode(500, new ResultViewModel<User>("Falha interna do ser"));
         }
-            
+
     }
     [HttpPost("v1/users/login")]
     public async Task<IActionResult> Login(
@@ -65,13 +68,17 @@ public class UserController : ControllerBase
             .Include(x => x.Roles)
             .FirstOrDefaultAsync(x => x.Email == model.Email);
         if (user == null)
-            return StatusCode(401, new ResultViewModel<string>("Usuário inválidos"));
+            return StatusCode(401, new ResultViewModel<string>("Usuário inválido"));
 
         if (!PasswordHasher.Verify(user.PasswordHash, model.Password))
             return StatusCode(401, new ResultViewModel<string>("Usuário ou senha inválidos"));
         try
         {
             var token = tokenService.GenerateToken(user);
+            if (!user.IsActive)
+            {
+                return StatusCode(401, new ResultViewModel<string>("Usuário inválido"));
+            }
             return Ok(new ResultViewModel<string>(token, null));
         }
         catch
@@ -79,14 +86,14 @@ public class UserController : ControllerBase
             return StatusCode(500, new ResultViewModel<string>("Falha interna do servidor"));
         }
     }
-    
-    [Authorize("admin")]
+
+    [Authorize(Roles = "admin")]
     [HttpGet("v1/users")]
     public async Task<IActionResult> GetAsync([FromServices] SeboDataContext context)
     {
         try
         {
-            var users = await context.Users.Where(x=>x.IsActive == true).ToListAsync();
+            var users = await context.Users.Where(x => x.IsActive == true).ToListAsync();
             return Ok(new ResultViewModel<List<User>>(users));
         }
         catch
@@ -94,29 +101,44 @@ public class UserController : ControllerBase
             return StatusCode(500, new ResultViewModel<List<User>>("Falha interna do servidor"));
         }
     }
-    [Authorize("admin")]
     [HttpGet("v1/users/{id:int}")]
     public async Task<IActionResult> GetByIdAsync(
         [FromRoute] int id,
         [FromServices] SeboDataContext context)
     {
-        var user = await context.Users.FirstOrDefaultAsync(x=>x.Id == id);
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+        // Verifique se o usuário autenticado está atualizando seu próprio perfil
+        if (id != userId)
+        {
+            return Forbid(); // Usuário não tem permissão para editar este perfil
+        }
+
+        var user = await context.Users.FirstOrDefaultAsync(x => x.Id == id);
 
         if (user == null)
             return NotFound(new ResultViewModel<User>("Usuário não encontrado"));
-        
+
         return Ok(new ResultViewModel<User>(user));
     }
-    [Authorize(Roles="admin")]
+
     [HttpPut("v1/users/{id:int}")]
     public async Task<IActionResult> PutAsync(
-        [FromRoute] int id,
-        [FromBody] EditUserViewModel model,
-        [FromServices] SeboDataContext context)
+    [FromRoute] int id,
+    [FromBody] EditUserViewModel model,
+    [FromServices] SeboDataContext context)
     {
         try
         {
-            var user = await context.Users.FirstOrDefaultAsync(x=>x.Id == id);
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+            // Verifique se o usuário autenticado está atualizando seu próprio perfil
+            if (id != userId)
+            {
+                return Forbid(); // Usuário não tem permissão para editar este perfil
+            }
+
+            var user = await context.Users.FirstOrDefaultAsync(x => x.Id == id);
 
             if (user == null)
                 return NotFound(new ResultViewModel<User>("Usuário não encontrado"));
@@ -128,19 +150,19 @@ public class UserController : ControllerBase
 
             context.Users.Update(user);
             await context.SaveChangesAsync();
-            
+
             return Ok(new ResultViewModel<User>(user));
         }
         catch (DbUpdateException ex)
         {
-             return StatusCode(500, new ResultViewModel<User>("Não foi possível atualizar o usuário"));
+            return StatusCode(500, new ResultViewModel<User>("Não foi possível atualizar o usuário"));
         }
         catch
         {
-             return StatusCode(500, new ResultViewModel<User>("Falha interna no servidor"));
+            return StatusCode(500, new ResultViewModel<User>("Falha interna no servidor"));
         }
     }
-    [Authorize(Roles="admin")]
+
     [HttpDelete("v1/users/{id:int}")]
     public async Task<IActionResult> DeleteAsync(
         [FromRoute] int id,
@@ -148,7 +170,15 @@ public class UserController : ControllerBase
     {
         try
         {
-            var user = await context.Users.FirstOrDefaultAsync(x=>x.Id == id);
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+            // Verifique se o usuário autenticado está excluindo seu próprio perfil
+            if (id != userId)
+            {
+                return Forbid(); // Usuário não tem permissão para excluir este perfil
+            }
+
+            var user = await context.Users.FirstOrDefaultAsync(x => x.Id == id);
 
             if (user == null)
                 return NotFound(new ResultViewModel<User>("Usuário não encontrado"));
@@ -157,7 +187,7 @@ public class UserController : ControllerBase
 
             context.Users.Update(user);
             await context.SaveChangesAsync();
-            
+
             return Ok(new ResultViewModel<User>(user));
         }
         catch (DbUpdateException ex)

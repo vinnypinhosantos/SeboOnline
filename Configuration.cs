@@ -3,5 +3,5 @@
 public static class Configuration
 {
     // TOKEN
-    public static string JwtKey { get; set; } = "Jyj1wx7d40e+Mv44vjv6Hg==";
+    public static string JwtKey = "Jyj1wx7d40e+Mv44vjv6Hg==";
 }

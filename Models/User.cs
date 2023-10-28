@@ -12,4 +12,6 @@ public class User
     public string PasswordHash { get; set; }
     public bool IsActive { get; set; }
     public IList<Role> Roles { get; set; }
+    public int UserId => Id;
+
 }
