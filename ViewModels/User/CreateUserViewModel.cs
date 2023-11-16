@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SeboOnline.ViewModels;
+namespace SeboOnline.ViewModels.User;
 
 public class CreateUserViewModel
 {

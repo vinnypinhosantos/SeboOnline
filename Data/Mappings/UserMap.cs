@@ -35,6 +35,15 @@ public class UserMap : IEntityTypeConfiguration<User>
             .HasColumnType("NVARCHAR")
             .HasMaxLength(100);
 
+        builder.Property(x => x.CreatedAt) 
+                .HasColumnName("CreatedAt")
+                .HasColumnType("DATETIME");
+
+        builder.Property(x => x.Specialization)
+            .HasColumnName("Specialization")
+            .HasColumnType("NVARCHAR")
+            .HasMaxLength(100);
+
         builder.HasIndex(x => x.Email)
             .IsUnique();
         

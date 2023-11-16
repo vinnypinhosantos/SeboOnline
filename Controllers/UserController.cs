@@ -10,6 +10,7 @@ using Exception = System.Exception;
 using SecureIdentity.Password;
 using static System.Net.WebRequestMethods;
 using System.Security.Claims;
+using SeboOnline.ViewModels.User;
 
 namespace SeboOnline.Controllers;
 
@@ -50,7 +51,7 @@ public class UserController : ControllerBase
         }
         catch
         {
-            return StatusCode(500, new ResultViewModel<User>("Falha interna do ser"));
+            return StatusCode(500, new ResultViewModel<User>("Falha interna do servidor"));
         }
 
     }
@@ -86,21 +87,6 @@ public class UserController : ControllerBase
             return StatusCode(500, new ResultViewModel<string>("Falha interna do servidor"));
         }
     }
-
-    [Authorize(Roles = "admin")]
-    [HttpGet("v1/users")]
-    public async Task<IActionResult> GetAsync([FromServices] SeboDataContext context)
-    {
-        try
-        {
-            var users = await context.Users.Where(x => x.IsActive == true).ToListAsync();
-            return Ok(new ResultViewModel<List<User>>(users));
-        }
-        catch
-        {
-            return StatusCode(500, new ResultViewModel<List<User>>("Falha interna do servidor"));
-        }
-    }
     [HttpGet("v1/users/{id:int}")]
     public async Task<IActionResult> GetByIdAsync(
         [FromRoute] int id,
@@ -108,10 +94,9 @@ public class UserController : ControllerBase
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
-        // Verifique se o usuário autenticado está atualizando seu próprio perfil
         if (id != userId)
         {
-            return Forbid(); // Usuário não tem permissão para editar este perfil
+            return Forbid();
         }
 
         var user = await context.Users.FirstOrDefaultAsync(x => x.Id == id);
@@ -132,10 +117,9 @@ public class UserController : ControllerBase
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
-            // Verifique se o usuário autenticado está atualizando seu próprio perfil
             if (id != userId)
             {
-                return Forbid(); // Usuário não tem permissão para editar este perfil
+                return Forbid();
             }
 
             var user = await context.Users.FirstOrDefaultAsync(x => x.Id == id);

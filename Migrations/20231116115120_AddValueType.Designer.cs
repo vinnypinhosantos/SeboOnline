@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SeboOnline.Data;
 
@@ -11,9 +12,11 @@ using SeboOnline.Data;
 namespace SeboOnline.Migrations
 {
     [DbContext(typeof(SeboDataContext))]
-    partial class SeboDataContextModelSnapshot : ModelSnapshot
+    [Migration("20231116115120_AddValueType")]
+    partial class AddValueType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -150,7 +153,7 @@ namespace SeboOnline.Migrations
 
                     b.HasIndex("IdSeller");
 
-                    b.ToTable("Transaction", (string)null);
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("SeboOnline.Models.User", b =>

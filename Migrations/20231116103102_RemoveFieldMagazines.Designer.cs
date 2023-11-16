@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SeboOnline.Data;
 
@@ -11,9 +12,11 @@ using SeboOnline.Data;
 namespace SeboOnline.Migrations
 {
     [DbContext(typeof(SeboDataContext))]
-    partial class SeboDataContextModelSnapshot : ModelSnapshot
+    [Migration("20231116103102_RemoveFieldMagazines")]
+    partial class RemoveFieldMagazines
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,9 +74,6 @@ namespace SeboOnline.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("Description");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
                     b.Property<decimal>("Price")
                         .HasColumnType("DECIMAL(18,2)")
                         .HasColumnName("Price");
@@ -117,40 +117,6 @@ namespace SeboOnline.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Role", (string)null);
-                });
-
-            modelBuilder.Entity("SeboOnline.Models.Transaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("IdBuyer")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdItem")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdSeller")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Value")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdBuyer");
-
-                    b.HasIndex("IdItem");
-
-                    b.HasIndex("IdSeller");
-
-                    b.ToTable("Transaction", (string)null);
                 });
 
             modelBuilder.Entity("SeboOnline.Models.User", b =>
@@ -231,33 +197,6 @@ namespace SeboOnline.Migrations
                         .HasConstraintName("FK_Item_SellerId");
 
                     b.Navigation("Category");
-
-                    b.Navigation("Seller");
-                });
-
-            modelBuilder.Entity("SeboOnline.Models.Transaction", b =>
-                {
-                    b.HasOne("SeboOnline.Models.User", "Buyer")
-                        .WithMany()
-                        .HasForeignKey("IdBuyer")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SeboOnline.Models.Item", "Item")
-                        .WithMany()
-                        .HasForeignKey("IdItem")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SeboOnline.Models.User", "Seller")
-                        .WithMany()
-                        .HasForeignKey("IdSeller")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Buyer");
-
-                    b.Navigation("Item");
 
                     b.Navigation("Seller");
                 });
